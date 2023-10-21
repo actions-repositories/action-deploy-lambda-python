@@ -1,0 +1,47 @@
+name: 'Pipeline test lambda python'
+description: 'test lambda python aws'
+inputs:
+  AWS_ACCESS_KEY_ID: 
+    description: 'Access key id aws account'
+    required: true
+  AWS_SECRET_ACCESS_KEY: 
+    description: 'Secret key id aws account'
+    required: true
+  PATH_TO_TFVARS:
+    description: 'Path of the archive .tfvars'
+    required: true
+  PATH_TO_CONF:
+    description: 'Path of the archive .conf'
+    required: true
+
+runs:
+  using: "composite"
+  steps:  
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Download package
+      uses: actions/download-artifact@v3
+      with:
+        name: package.zip
+
+    - name: Setup cloud credentials
+      run: |
+        cd infra 
+        echo -e provider \"aws\" {"\n\t"region=\"sa-east-1\" "\n\t"access_key=\"${{ inputs.AWS_ACCESS_KEY_ID }}\" "\n\t"secret_key=\"${{ inputs.AWS_SECRET_ACCESS_KEY }}\""\n"} >> credentials.tf
+      shell: bash
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Terraform Init
+      run: | 
+        cd infra
+        terraform init -backend-config="access_key=${{ inputs.AWS_ACCESS_KEY_ID }}" -backend-config="secret_key=${{ inputs.AWS_SECRET_ACCESS_KEY }}"  -backend-config="region=sa-east-1" -backend-config="${{ inputs.PATH_TO_CONF }}"
+      shell: bash
+
+    - name: Terraform Apply
+      run: |
+        cd infra 
+        terraform apply -auto-approve -var-file="${{ inputs.PATH_TO_TFVARS }}"
+      shell: bash
