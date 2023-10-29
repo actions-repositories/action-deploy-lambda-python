@@ -1,5 +1,5 @@
-name: 'Pipeline test lambda python'
-description: 'test lambda python aws'
+name: 'Pipeline deploy lambda python'
+description: 'deploy lambda python aws'
 inputs:
   AWS_ACCESS_KEY_ID: 
     description: 'Access key id aws account'
